@@ -5,10 +5,17 @@ from time import sleep
 
 
 BACKGROUND_COLOR = "#B1DDC6"
-
-data = pandas.read_csv("translation.csv")
-learn = data.to_dict(orient="records")
 current_card = {} 
+learn = {} 
+try:
+    data = pandas.read_csv("words_to_learn.csv")
+except FileNotFoundError:
+    original_data = pandas.read_csv("translation.csv")
+    learn = original_data.to_dict(orient="records")
+
+else:
+    learn = data.to_dict(orient="records")
+
 
 def nextCard():
     global current_card, flip_timer
@@ -17,12 +24,20 @@ def nextCard():
     canvas.itemconfig(card_title, text = "English",fill = "black")
     canvas.itemconfig(card_word, text = current_card['English'], fill="black")
     canvas.itemconfig(card_background, image=card_front_img)
-    flip_timer = window.after(3000, func=flip_card)
+    flip_timer = window.after(5000, func=flip_card)
 
 def flip_card():
     canvas.itemconfig(card_title, text= "Portuguese", fill="white")
     canvas.itemconfig(card_word, text= current_card["Portuguese"],fill="white")
     canvas.itemconfig(card_background, image =card_back_img)
+
+
+def isKnown():
+    learn.remove(current_card)
+    print(len(learn))
+    data = pandas.DataFrame(learn)
+    data.to_csv("words_to_learn.csv",index=False)
+    nextCard()
 
 window = Tk()
 window.title("Flash")
@@ -46,7 +61,7 @@ unknown_button = Button(image=cross_image,highlightthickness=0, command = nextCa
 unknown_button.grid(row=1,column =0)
 
 check_image = PhotoImage(file= "right.png")
-check_button = Button(image = check_image,highlightthickness=0, command = nextCard)
+check_button = Button(image = check_image,highlightthickness=0, command = isKnown)
 check_button.grid(row=1,column=1)
 
 nextCard()
